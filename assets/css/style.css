@@ -1,3 +1,19 @@
 body{
 	
 }
+
+#debug {
+	width: 300px;
+}
+
+.disabled {
+  opacity: 0.65; 
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.info {
+	float: right;
+	margin: 3px;
+}
+
