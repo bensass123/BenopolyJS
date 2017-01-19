@@ -90,6 +90,7 @@ function Card(id, name) {
 }
 
 Card.prototype.doCard = function () {
+	alert(this.name);
 	console.log('doCard started using: ' + this.name);
 	switch(this.name){
 			//case statements for all cards
@@ -107,23 +108,13 @@ Card.prototype.doCard = function () {
 			g.players[g.cpi].hasGOJcard = true;
 			break;
 		case 'Go to Jail: go directly to jail, Do not pass Go, do not collect $200':
-			g.players[g.cpi].jailed = true;
+			g.players[g.cpi].sendToJail();
 			break;
 		case 'It is your birthday: Collect $10 from each player':
-			for (i in g.players) {
-				if (g.cpi != i){
-					g.players[i].cash -= 10;
-					g.players[g.cpi].cash += 10;
-				}
-			}
+			g.players[g.cpi].collectFromAllOthers(10);
 			break;
 		case 'Grand Opera Night: collect $50 from every player for opening night seats':
-			for (i in g.players) {
-				if (g.cpi != i){
-					g.players[i].cash -= 50;
-					g.players[g.cpi].cash += 50;
-				}
-			}
+			g.players[g.cpi].collectFromAllOthers(50);
 			break;
 		case 'Income Tax refund: collect $20':
 			g.players[g.cpi].cash += 20;
@@ -141,6 +132,7 @@ Card.prototype.doCard = function () {
 			g.players[g.cpi].cash += 25;
 			break;
 		case 'You are assessed for street repairs: $40 per house, $115 per hotel':
+			g.players[g.cpi].makeRepairs(40, 115);
 			break;
 		case 'You have won second prize in a beauty contest: collect $10':
 			g.players[g.cpi].cash += 10;
@@ -160,9 +152,13 @@ Card.prototype.doCard = function () {
 			break;
 		case 'Advance token to nearest Utility. If unowned, you may buy it from the Bank. If owned, throw dice and pay owner a total ten times the amount thrown.':
 			console.log('utility');
+			//create flag to skip rent payment and do custom roll and rent payment in its own method
+			//todo
 			break;
 		case 'Advance token to the nearest Railroad and pay owner twice the rental to which he/she is otherwise entitled. If Railroad is unowned, you may buy it from the Bank.':
 			console.log('RR');
+			//create flag to skip rent payment and do custom roll and rent payment in its own method
+			//todo
 			break;
 		case 'Advance to St. Charles Place: if you pass Go, collect $200':
 			console.log('st charles');
@@ -183,24 +179,22 @@ Card.prototype.doCard = function () {
 			g.players[g.cpi].sendToJail();
 			break;
 		case 'Make general repairs on all your property: for each house pay $25, for each hotel $100':
+			//to-do
+			g.players[g.cpi].makeRepairs(25, 100);
 			console.log('repairs');
 			break;
 		case 'Pay poor tax of $15':
 			g.players[g.cpi].cash -= 15;
 			break;
 		case 'Take a trip to Reading Railroad:  if you pass Go, collect $200':
+			g.players[g.cpi].goToSquare(5);
 			console.log('reading');
 			break;
 		case 'Take a walk on the Boardwalk:  advance token to Boardwalk':
-			g.players[g.cpi].location = 39;
+			g.players[g.cpi].goToSquare(39);
 			break;
 		case 'You have been elected chairman of the board:  pay each player $50':
-			for (i in g.players) {
-				if (g.cpi != i){
-					g.players[i].cash += 50;
-					g.players[g.cpi].cash -= 50;
-				}
-			}
+			g.players[g.cpi].payAllOthers(50);
 			break;
 		case 'Your building loan matures:  collect $150':
 			g.players[g.cpi].cash += 150;
@@ -208,8 +202,7 @@ Card.prototype.doCard = function () {
 		case 'You have won a crossword competition: collect $100':
 			g.players[g.cpi].cash += 100;
 			break;
-
-	//end of case statements
+	//end of Card case statements
 	}
 	if (g.board[g.players[g.cpi].location].constructor === Property){
 		g.players[g.cpi].prompt();
@@ -217,6 +210,43 @@ Card.prototype.doCard = function () {
 	g.players[g.cpi].promptDone();
 	updateView();
 
+}
+
+Player.prototype.payAllOthers = function (pmt){
+			for (i in g.players) {
+				if (g.cpi != i){
+					g.players[i].cash += pmt;
+					g.players[g.cpi].cash -= pmt;
+				}
+			}
+}
+
+Player.prototype.collectFromAllOthers = function (pmt){
+			for (i in g.players) {
+				if (g.cpi != i){
+					g.players[i].cash -= pmt;
+					g.players[g.cpi].cash += pmt;
+				}
+			}
+}
+
+Player.prototype.makeRepairs = function (houseCost, hotelCost){
+	var repairCost = 0;
+	var housesTotal = 0;
+	var hotelsTotal = 0;
+	repairableProps = this.props;
+		for (i in repairableProps){
+			if (repairableProps[i].houses < 5){
+				housesTotal += repairableProps[i].houses;
+			}
+			else {
+				hotelsTotal += 1;
+			}
+		}
+		repairCost = (housesTotal * houseCost) + (hotelsTotal * hotelCost);
+		this.cash -= repairCost;
+		console.log('Player id ' + this.id + ' had ' + housesTotal + ' houses and ' + hotelsTotal + 
+			' hotels. Their total repair bill was ' + repairCost);
 }
 
 function Player(id, name) {
@@ -248,6 +278,7 @@ Player.prototype.sendToJail = function () {
 	this.location = 10;
 	this.jailed = true;
 	this.jrolls = 0;
+	$('#rollButton').addClass('disabled');
 }
 
 
@@ -295,10 +326,7 @@ Player.prototype.rollDice = function () {
 	  	//if you have rolled doubles 3 times in a row, set location to jail, change jailed to true, set jRolls to 0
 	  	//hide roll button and run promptdone()
 	  else {
-	  	this.location = 10;
-	  	this.jailed = true;
-	  	this.jRolls = 0;
-	  	$('#rollButton').addClass('disabled');
+	  	this.sendToJail();
 	  	this.promptDone();
 	  }
 
@@ -365,7 +393,8 @@ Player.prototype.prompt = function () {
 			case 'Community Chest':
 				this.pullCard('Chest');
 				break;
-			case 'Income Tax 2.0M':
+			case 'Income Tax - $200':
+				this.cash -= 200;
 				break;
 			case 'Chance':
 				this.pullCard('Chance');
@@ -375,6 +404,8 @@ Player.prototype.prompt = function () {
 			case 'Free Parking':
 				break;
 			case 'Go to jail':
+				this.sendToJail();
+
 				break;
 			case 'Chance':
 				break;
@@ -407,9 +438,9 @@ Player.prototype.pullCard = function (deck){
 }
 
 Player.prototype.goToSquare = function (squareLocation){
-	var initLoc = this.location;
+	var initialLoc = this.location;
 	this.location = squareLocation;
-	if (squareLocation < initLoc){
+	if (squareLocation < initialLoc){
 		this.passedGo();
 	}
 }
@@ -463,9 +494,7 @@ Player.prototype.passedGo = function () {
 	console.log('ran passedGo for player id ' + this.id + ', this.name');
 }
 
-Player.prototype.goToJail = function () {
-	return "jail";
-}
+
 
 
 
@@ -499,7 +528,7 @@ function createBoard(){
 	var rent4 = [0,160,0,320,0,99,400,0,400,450,0,625,98,625,700,99,750,0,750,800,0,875,0,875,925,99,975,975,98,1025,0,1100,1100,0,1200,99,0,1300,0,1700];
 	var rent5 = [0,250,0,450,0,99,550,0,550,600,0,750,98,750,900,99,950,0,950,1000,0,1050,0,1050,1100,99,1150,1150,98,1200,0,1275,1275,0,1400,99,0,1500,0,2000];
 	var housePrices = [50,50,50,50,50,50,50,50,50,50,100,100,100,100,100, 100,100,100,100,100, 150,150,150,150,150, 150,150,150,150,150, 200,200,200,200,200, 200,200,200,200,200];
-	var squareIDs = ['Go', 'BrP1', 'Community Chest', 'BrP2', 'Income Tax 2.0M', 'RR1', 'LbP1', 'Chance', 'LbP2', 'LbP3', 'Just Visiting', 'PP1', 'Utility - Piedmont Natural Gas', 'PP2', 'PP3', 'RR2', 'OP1', 'Community Chest', 'OP2', 'OP3', 'Free Parking', 'RP1', 'Chance', 'RP2', 'RP3', 'RR3', 'YP1', 'YP2', 'Utility - Duke Power', 'YP3', 'Go to jail', 'GP1', 'GP2', 'Community Chest', 'GP3', 'RR4', 'Chance', 'DBP1', 'Luxury Tax 1.0M', 'DBP2'];
+	var squareIDs = ['Go', 'BrP1', 'Community Chest', 'BrP2', 'Income Tax - $200', 'RR1', 'LbP1', 'Chance', 'LbP2', 'LbP3', 'Just Visiting', 'PP1', 'Utility - Piedmont Natural Gas', 'PP2', 'PP3', 'RR2', 'OP1', 'Community Chest', 'OP2', 'OP3', 'Free Parking', 'RP1', 'Chance', 'RP2', 'RP3', 'RR3', 'YP1', 'YP2', 'Utility - Duke Power', 'YP3', 'Go to jail', 'GP1', 'GP2', 'Community Chest', 'GP3', 'RR4', 'Chance', 'DBP1', 'Luxury Tax 1.0M', 'DBP2'];
 	var groups = ["na", "Br", "na", "Br", "na", "RR", "Lb", "na", "Lb", "Lb", "na", "PP", "Ut", "PP", "PP", "RR", "OP", "na", "OP", "OP", "na", "RP", "na", "RP", "RP", "RR", "YP", "YP", "Ut", "YP", "na", "GP", "GP", "na", "GP", "RR", "na", "DB", "na", "DB"];
 
 	for (i in isProperty){

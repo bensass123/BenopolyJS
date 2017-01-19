@@ -1,0 +1,4 @@
+// 121 squares
+
+// canvas with grid
+// html table 11 x 11
