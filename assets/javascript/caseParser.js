@@ -42,14 +42,51 @@ var isProperty = [false, true, false, true, false, true, true, false, true, true
 	true, true, false, true, true, false, true, false, true, true, true, true, true, true, true, false, true, true, false,
 	true, true, false, true, false, true];
 
-target = squareIDs;
+target = chanceCards;
 
 var s = "";
 
 for (i in target){
-	if (!isProperty[i]){
+	{
 		s += "		case '" + target[i] + "':" + String.fromCharCode(13) + '			break;' + String.fromCharCode(13);
 	}
 }
 
 console.log(s);
+
+
+
+		case 'Advance to Go (Collect $200)':
+			break;
+		case 'Advance to Illinois Ave:  if you pass Go, collect $200':
+			break;
+		case 'Advance token to nearest Utility. If unowned, you may buy it from the Bank. If owned, throw dice and pay owner a total ten times the amount thrown.':
+			break;
+		case 'Advance token to the nearest Railroad and pay owner twice the rental to which he/she is otherwise entitled. If Railroad is unowned, you may buy it from the Bank.':
+			break;
+		case 'Advance token to the nearest Railroad and pay owner twice the rental to which he/she is otherwise entitled. If Railroad is unowned, you may buy it from the Bank.':
+			break;
+		case 'Advance to St. Charles Place: if you pass Go, collect $200':
+			break;
+		case 'Bank pays you dividend of $50':
+			break;
+		case 'Get out of Jail Free:  this card may be kept until needed, or traded/sold':
+			break;
+		case 'Go back 3 spaces':
+			break;
+		case 'Go directly to Jail:  do not pass Go, do not collect $200':
+			break;
+		case 'Make general repairs on all your property: for each house pay $25, for each hotel $100':
+			break;
+		case 'Pay poor tax of $15':
+			break;
+		case 'Take a trip to Reading Railroad:  if you pass Go, collect $200':
+			break;
+		case 'Take a walk on the Boardwalk:  advance token to Boardwalk':
+			break;
+		case 'You have been elected chairman of the board:  pay each player $50':
+			break;
+		case 'Your building loan matures:  collect $150':
+			break;
+		case 'You have won a crossword competition: collect $100':
+			break;

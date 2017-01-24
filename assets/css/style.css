@@ -2,8 +2,17 @@ body{
 	
 }
 
+#bCanvas{
+	background: url('../images/monoBoard.jpg');
+	background-size: 600px 600px;
+    background-repeat: no-repeat;
+    height: 600px;
+    width: 600px;
+}
+
 #debug {
 	width: 300px;
+	font-size: 12px;
 }
 
 .disabled {

@@ -3,6 +3,22 @@
 
 //game variable
 var g;
+//dice roll
+var total;
+
+//starting positions for all pieces
+var currentXRect = 1130;
+var currentYRect = 1150;
+var currentXCirc = 1155;
+var currentYCirc = 1125;
+var currentXRect2 = 1084;
+var currentYRect2 = 1150;
+var currentXRect3 = 1084;
+var currentYRect3 = 1150;
+
+
+
+
 
 
 	//shuffles an array
@@ -54,6 +70,33 @@ function Property(location, name, price, rentArray, housePrice, group){
 		//set property group
 	this.group = group;
 	this.ownedByPlayerIndex = -1;
+	this.houses = 0;
+	this.monopolized = false;
+}
+
+Property.prototype.chanceRRRent = function () {
+	var x = this.ownedByPlayerIndex;
+	rent = 0;
+
+	switch(g.players[x].rrsOwned){
+		case 1:
+			rent = 50;
+			console.log(rent);
+			break;
+		case 2:
+			rent = 100;
+			console.log(rent);
+			break;
+		case 3:
+			rent = 200;
+			console.log(rent);
+			break;
+		case 4:
+			rent = 400;
+			console.log(rent);
+			break;
+	}
+	return rent;
 }
 
 
@@ -157,8 +200,39 @@ Card.prototype.doCard = function () {
 			break;
 		case 'Advance token to the nearest Railroad and pay owner twice the rental to which he/she is otherwise entitled. If Railroad is unowned, you may buy it from the Bank.':
 			console.log('RR');
-			//create flag to skip rent payment and do custom roll and rent payment in its own method
-			//todo
+
+			//chance 7. 22. 36
+			if (g.players[g.cpi].location = 7) {
+				g.players[g.cpi].goToSquare(15);
+				var rent = g.board[15].chanceRRRent;
+				var ownerIndex = g.board[15].ownedByPlayerIndex;
+				if (g.board[15].isOwned) {
+					g.players[ownerIndex].cash += rent;
+					g.players[g.cpi].cash -= rent;
+					console.log('player id ' + g.players[g.cpi].id + ' paid player id ' + g.players[ownerIndex] + ' rent of ' + rent);
+				}
+			}
+			if (g.players[g.cpi].location = 22) {
+				g.players[g.cpi].goToSquare(25);
+				var rent = g.board[25].chanceRRRent;
+				var ownerIndex = g.board[25].ownedByPlayerIndex;
+				if (g.board[25].isOwned) {
+					g.players[ownerIndex].cash += rent;
+					g.players[g.cpi].cash -= rent;
+					console.log('player id ' + g.players[g.cpi].id + ' paid player id ' + g.players[ownerIndex] + ' rent of ' + rent);
+				}
+			}
+			if (g.players[g.cpi].location = 36) {
+				g.players[g.cpi].passedGo();
+				g.players[g.cpi].goToSquare(5);
+				var rent = g.board[5].chanceRRRent;
+				var ownerIndex = g.board[5].ownedByPlayerIndex;
+				if (g.board[5].isOwned) {
+					g.players[ownerIndex].cash += rent;
+					g.players[g.cpi].cash -= rent;
+					console.log('player id ' + g.players[g.cpi].id + ' paid player id ' + g.players[ownerIndex] + ' rent of ' + rent);
+				}
+			}
 			break;
 		case 'Advance to St. Charles Place: if you pass Go, collect $200':
 			console.log('st charles');
@@ -204,21 +278,42 @@ Card.prototype.doCard = function () {
 			break;
 	//end of Card case statements
 	}
+
+	//draws player on correct board square
+	var x = g.players[g.cpi].xArray[g.players[g.cpi].location];
+	var y = g.players[g.cpi].yArray[g.players[g.cpi].location];
+	movePlayer(x,y);
+
 	if (g.board[g.players[g.cpi].location].constructor === Property){
 		g.players[g.cpi].prompt();
 	}
 	g.players[g.cpi].promptDone();
 	updateView();
+}
 
+function Player(id, name) {
+	this.name = name;
+	this.id = id;
+	this.cash = 1500;
+	this.location = 0;
+	this.props = [];
+	this.jRolls = 0;
+	this.hasGOJcard = false;
+	this.rrsOwned = 0;
+	this.utsOwned = 0;
+  	this.jailed = false;
+  	this.doubleRolls = 0;
+  	this.xArray = [];
+  	this.yArray = [];
 }
 
 Player.prototype.payAllOthers = function (pmt){
-			for (i in g.players) {
-				if (g.cpi != i){
-					g.players[i].cash += pmt;
-					g.players[g.cpi].cash -= pmt;
-				}
-			}
+	for (i in g.players) {
+		if (g.cpi != i){
+			g.players[i].cash += pmt;
+			g.players[g.cpi].cash -= pmt;
+		}
+	}
 }
 
 Player.prototype.collectFromAllOthers = function (pmt){
@@ -249,20 +344,6 @@ Player.prototype.makeRepairs = function (houseCost, hotelCost){
 			' hotels. Their total repair bill was ' + repairCost);
 }
 
-function Player(id, name) {
-	this.name = name;
-	this.id = id;
-	this.cash = 1500;
-	this.location = 0;
-	this.props = [];
-	this.jRolls = 0;
-	this.hasGOJcard = false;
-	this.rrsOwned = 0;
-	this.utsOwned = 0;
-  	this.jailed = false;
-  	this.doubleRolls = 0;
-}
-
 Player.prototype.moveBack3 = function () {
 	if (this.location > 2) {
 		this.location -= 3;
@@ -278,6 +359,9 @@ Player.prototype.sendToJail = function () {
 	this.location = 10;
 	this.jailed = true;
 	this.jrolls = 0;
+	var x = g.players[g.cpi].xArray[g.players[g.cpi].location];
+	var y = g.players[g.cpi].yArray[g.players[g.cpi].location];
+	movePlayer(x,y);
 	$('#rollButton').addClass('disabled');
 }
 
@@ -288,8 +372,10 @@ Player.prototype.rollDice = function () {
   var dice1 = Math.floor((Math.random() * 6) + 1);
   var dice2 = Math.floor((Math.random() * 6) + 1);
   total = dice1 + dice2;
-  //debug test
-  total = 7;
+
+  console.log('Player with id: ' + this.id + ' rolled ' + dice1 + " & " + dice2);
+  //debug test dice
+  // total = 7;
   $('#dice').html('');
   $('#dice').html('Player with id: ' + this.id + ' rolled ' + dice1 + " & " + dice2);
 
@@ -298,6 +384,7 @@ Player.prototype.rollDice = function () {
 	  console.log('Player with id: ' + this.id + ' rolled ' + dice1 + " & " + dice2);
 	  	//incrementing doubles, or resetting to 0
 	  if (dice1 === dice2){
+	  	$('#doneButton').addClass('disabled');
 	  	this.doubleRolls +=1;
 	  	//letting out of jail if rolled doubles
 	  	if (this.jailed) {
@@ -314,6 +401,9 @@ Player.prototype.rollDice = function () {
 	  if (this.doubleRolls < 3){
 	  	if ((this.location + total) < 40) {
 	  		this.location += total;
+	  		var x = this.xArray[this.location];
+	  		var y = this.yArray[this.location];
+	  		movePlayer(x,y);
 	  	}
 	  	else {
 	  			//award player 200
@@ -321,6 +411,9 @@ Player.prototype.rollDice = function () {
 	  			//set location when passing go
 	  		var goLoc = this.location + total - 40;
 	  		this.location = goLoc;
+	  		var x = this.xArray[goLoc];
+	  		var y = this.yArray[goLoc];
+	  		movePlayer(x,y);
 	  	}
 	  }
 	  	//if you have rolled doubles 3 times in a row, set location to jail, change jailed to true, set jRolls to 0
@@ -342,6 +435,9 @@ Player.prototype.rollDice = function () {
 			this.location += total;
 			this.jRolls = 0;
 			updateView();
+			var x = this.xArray[this.location];
+	  		var y = this.yArray[this.location];
+	  		movePlayer(x,y);
 			$('#rollButton').addClass('disabled');
 			this.prompt();
 			this.promptDone();
@@ -371,6 +467,7 @@ Player.prototype.rollDice = function () {
 Player.prototype.promptDone = function () {
 	$('#doneButton').removeClass('disabled');
 }
+
 
 Player.prototype.prompt = function () {
 	//check if property
@@ -405,7 +502,6 @@ Player.prototype.prompt = function () {
 				break;
 			case 'Go to jail':
 				this.sendToJail();
-
 				break;
 			case 'Chance':
 				break;
@@ -447,66 +543,225 @@ Player.prototype.goToSquare = function (squareLocation){
 
 Player.prototype.buy = function () {
 	this.props.push(g.board[this.location]);
-	console.log('player ' + this.id + ' just bought ' + g.board[this.location].name + 'he also owns: ');
+	this.cash -= g.board[this.location].price;
+	g.board[this.location].ownedByPlayerIndex = g.cpi;
+	g.board[this.location].isOwned = true;
+	console.log('player ' + this.id + ' just bought ' + g.board[this.location].name + '. He also owns: ');
 	for (i in this.props){
 		console.log(this.props[i].name);
 	}
+	this.checkForMonopolies();
 }
+
+Player.prototype.checkForMonopolies = function () {
+	var groupArray = [];
+	var p = this.props;
+		//counts for each monopoly group, starting at 0
+	var RR = Ut = Br = Lb = PP = OP = RP = YP = GP = DB = 0;
+
+	for (i in p) {
+		groupArray.push(p[i].group);
+	}
+	for (i in groupArray) {
+		if (groupArray[i] === 'Br') {
+			Br++;
+		}
+		if (groupArray[i] === 'RR') {
+			RR++;
+		}
+		if (groupArray[i] === 'Ut') {
+			Ut++;
+		}		
+		if (groupArray[i] === 'Lb') {
+			Lb++;
+		}
+		if (groupArray[i] === 'PP') {
+			PP++;
+		}
+		if (groupArray[i] === 'OP') {
+			OP++;
+		}
+		if (groupArray[i] === 'RP') {
+			RP++;
+		}
+		if (groupArray[i] === 'YP') {
+			YP++;
+		}
+		if (groupArray[i] === 'GP') {
+			GP++;
+		}
+		if (groupArray[i] === 'DB') {
+			DB++;
+		}
+	}
+
+	if (Br === 2){
+		g.board[1].monopolized = true;
+		g.board[3].monopolized = true;
+	}
+
+	if (Lb === 3){
+		g.board[6].monopolized = true;
+		g.board[8].monopolized = true;
+		g.board[9].monopolized = true;
+	}
+	if (PP === 3){
+		g.board[11].monopolized = true;
+		g.board[13].monopolized = true;
+		g.board[14].monopolized = true;
+	}
+	if (OP === 3){
+		g.board[16].monopolized = true;
+		g.board[18].monopolized = true;
+		g.board[19].monopolized = true;
+	}
+	if (RP === 3){
+		g.board[21].monopolized = true;
+		g.board[23].monopolized = true;
+		g.board[24].monopolized = true;
+	}
+	if (YP === 3){
+		g.board[26].monopolized = true;
+		g.board[27].monopolized = true;
+		g.board[29].monopolized = true;
+	}
+	if (GP === 3){
+		g.board[31].monopolized = true;
+		g.board[32].monopolized = true;
+		g.board[34].monopolized = true;
+	}
+	if (DB === 2){
+		g.board[37].monopolized = true;
+		g.board[39].monopolized = true;
+	}
+
+	//railroads
+	this.rrsOwned = RR;
+	this.utsOwned = Ut;
+
+}
+
 
 
 Player.prototype.payRent = function () {
 	var ownerIndex = g.board[this.location].ownedByPlayerIndex;
 	var tenantIndex = this.id;
 	var rent;
-	switch(g.board[this.location].houses){
-		case 0:
-			rent = g.board[this.location].rent0;
-			break;
-		case 1:
-			rent = g.board[this.location].rent1;
-			break;
-		case 2:
-			rent = g.board[this.location].rent2;
-			break;
-		case 3:
-			rent = g.board[this.location].rent3;
-			break;
-		case 4:
-			rent = g.board[this.location].rent4;
-			break;
-		case 5:
-			rent = g.board[this.location].rent5;
-			break;
+	var currentHouses = g.board[this.location].houses;
+	console.log('houses: ' + currentHouses);
+	
+	if (ownerIndex != tenantIndex){	
+		if (g.board[this.location].group === 'RR'){
+			// 25, 50, 100, 200
+			switch(g.players[ownerIndex].rrsOwned){
+				case 1:
+					rent = 25;
+					console.log(rent);
+					break;
+				case 2:
+					rent = 50;
+					console.log(rent);
+					break;
+				case 3:
+					rent = 100;
+					console.log(rent);
+					break;
+				case 4:
+					rent = 200;
+					console.log(rent);
+					break;
+			}
+		}
+		else if (g.board[this.location].group === 'Ut'){
+			switch(g.players[ownerIndex].utsOwned){
+				case 1:
+					rent = total * 4;
+					console.log(rent);
+					break;
+				case 2:
+					rent = total * 10;
+					console.log(rent);
+					break;
+			}
+		}
+		else{
+			switch(currentHouses){
+				case 0:
+					rent = g.board[this.location].rentArray[0];
+					console.log(rent);
+					break;
+				case 1:
+					rent = g.board[this.location].rentArray[1];
+					console.log(rent);
+					break;
+				case 2:
+					rent = g.board[this.location].rentArray[2];
+					console.log(rent);
+					break;
+				case 3:
+					rent = g.board[this.location].rentArray[3];
+					console.log(rent);
+					break;
+				case 4:
+					rent = g.board[this.location].rentArray[4];
+					console.log(rent);
+					break;
+				case 5:
+					rent = g.board[this.location].rentArray[5];
+					console.log(rent);
+					break;
+			}
+		}
 	}
 	g.players[tenantIndex].cash -= rent;
 	g.players[ownerIndex].cash += rent;
-	console.log('rent paid by player id ' + tenantIndex +' to player with id ' + ownerIndex);
+	console.log('rent paid by player id ' + tenantIndex +' to player with id ' + ownerIndex + '. Rate of ' + rent);
 }
 
 Player.prototype.buyPrompt = function () {
 	//show buy button
-	$('#buyButton').removeClass('disabled');
+	if (!(g.board[this.location].isOwned)){
+		$('#buyButton').removeClass('disabled');
+	}
 }
 
-
+//function to credit current player w 200
 Player.prototype.passedGo = function () {
 	this.cash += 200;
 	console.log('ran passedGo for player id ' + this.id + ', this.name');
 }
 
 
-
-
-
+//global function to create players
 function createPlayers(){
 	var players = [];
-	for (i=0; i < 3; i++){
+	var xCoordinateArray = [];
+	var yCoordinateArray = [];
+	var xRectArray, yRectArray, xCircArray, yCircArray, xRect2Array, yRect2Array, xRect3Array, yRect3Array;
+
+	//setting player position locations for all board spaces
+	xRectArray = [1130, 990, 892, 794, 696, 598, 500, 402, 304, 206, 108, 108, 108, 108, 108, 108, 108, 108, 108, 108, 108, 206, 304, 402, 500, 598, 696, 794, 892, 990, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100];
+	yRectArray = [1150, 1150, 1150, 1150, 1150, 1150, 1150, 1150, 1150, 1150, 1150, 991, 893, 795, 697, 599, 501, 403, 305, 207, 109, 109, 109, 109, 109, 109, 109, 109, 109, 109, 109, 207, 305, 403, 501, 599, 697, 795, 893, 991];
+	xCircArray = [1155, 1015, 917, 819, 721, 623, 525, 427, 329, 231, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 231, 329, 427, 525, 623, 721, 819, 917, 1015, 1125, 1125, 1125, 1125, 1125, 1125, 1125, 1125, 1125, 1125];
+	yCircArray = [1125, 1125, 1125, 1125, 1125, 1125, 1125, 1125, 1125, 1125, 1125, 966, 868, 770, 672, 574, 476, 378, 280, 182, 84, 84, 84, 84, 84, 84, 84, 84, 84, 84, 84, 182, 280, 378, 476, 574, 672, 770, 868, 966];
+	xRect2Array = [1084, 944, 846, 748, 650, 552, 454, 356, 258, 160, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 160, 258, 356, 454, 552, 650, 748, 846, 944, 1054, 1054, 1054, 1054, 1054, 1054, 1054, 1054, 1054, 1054];
+	yRect2Array = [1150, 1150, 1150, 1150, 1150, 1150, 1150, 1150, 1150, 1150, 1150, 991, 893, 795, 697, 599, 501, 403, 305, 207, 109, 109, 109, 109, 109, 109, 109, 109, 109, 109, 109, 207, 305, 403, 501, 599, 697, 795, 893, 991];
+	xRect3Array = [1084, 944, 846, 748, 650, 552, 454, 356, 258, 160, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 160, 258, 356, 454, 552, 650, 748, 846, 944, 1054, 1054, 1054, 1054, 1054, 1054, 1054, 1054, 1054, 1054];
+	yRect3Array = [1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 941, 843, 745, 647, 549, 451, 353, 255, 157, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 157, 255, 353, 451, 549, 647, 745, 843, 941];
+
+	xCoordinateArray.push(xRectArray, xCircArray, xRect2Array, xRect3Array);
+	yCoordinateArray.push(yRectArray, yCircArray, yRect2Array, yRect3Array);
+
+	for (i=0; i < 4; i++){
 		var p = new Player(i, "Bob_" + i);
+		p.xArray = xCoordinateArray[i];
+		p.yArray = yCoordinateArray[i];
 		players.push(p);
 	}
 	return players;
 }
 
+//global function to create game board, returns the gameboard array of boardsquare objects
 function createBoard(){
 		//creating array of objects to be the board
 	var currentSquare;
@@ -642,6 +897,8 @@ function debug(){
 
 }
 
+
+
 function createButtons(){
 	var b1 = $('<input/>').attr({
                 type: "button",
@@ -672,6 +929,7 @@ function createButtons(){
             	g.nextPlayer();
             	console.log('next player button clicked');
             	$('#doneButton').addClass('disabled');
+            	$('#buyButton').addClass('disabled');
             	updateView();
             });
 
@@ -707,6 +965,8 @@ function updateView(){
 		pDiv.append(p1);
 		panel.append(pDiv);
 	}
+	// drawRectanglePiece(currentXRect,currentYRect);
+
 	
 }
 
@@ -728,4 +988,126 @@ debug();
 
 
 
+function drawRectanglePiece(xRect, yRect){
+	var xText, yText;
+	currentXRect = xRect;
+	currentYRect = yRect;
+	xText = xRect + 6;
+	yText = yRect + 39;
+	var canvas;
+	var canvas = document.getElementById('bCanvas');
+	if (canvas.getContext) {
+		canvas.width=1200;//horizontal resolution (?) - increase for better looking text
+		canvas.height=1200;//vertical resolution (?) - increase for better looking text
+		//canvas.style.width=600;//actual width of canvas
+		//canvas.style.height=600;//actual height of canvas
+		// canvas.width = canvas.height * (canvas.clientWidth / canvas.clientHeight); //other fix for res
+	    var ctx = canvas.getContext('2d');
+	    ctx.fillRect(xRect, yRect, 50, 50);
+	    ctx.font = '32pt Wingdings';
+      	ctx.fillStyle = 'white';
+      	ctx.fillText("[", xText, yText);
+	}
+}
 
+function movePlayer(x, y){
+	var playerID = g.players[g.cpi].id;
+	if(playerID === 0){
+		drawPlayers(x, y, currentXCirc, currentYCirc, currentXRect2, currentYRect2, currentXRect3, currentYRect3);	
+	}
+
+	if(playerID === 1){
+		drawPlayers(currentXRect, currentYRect, x, y, currentXRect2, currentYRect2, currentXRect3, currentYRect3);	
+	}
+
+	if(playerID === 2){
+		drawPlayers(currentXRect, currentYRect, currentXCirc, currentYCirc, x, y, currentXRect3, currentYRect3);	
+	}
+
+	if(playerID === 3){
+		drawPlayers(currentXRect, currentYRect, currentXCirc, currentYCirc, currentXRect2, currentYRect2, x, y);	
+	}
+}
+
+function drawPlayers(){
+	// xCirc, yCirc, xRect, yRect 
+	var xRect = arguments[0];
+	var yRect = arguments[1];
+	var xCirc = arguments[2];
+	var yCirc = arguments[3];
+	var xRect2 = arguments[4];
+	var yRect2 = arguments[5];
+	var xRect3 = arguments[6];
+	var yRect3 = arguments[7];	
+	var xText, yText, xCircText, yCircText, xRect2Text, yRect2Text, xRect3Text, yRect3Text;
+	currentXCirc = xCirc;
+	currentYCirc = yCirc;
+	currentXRect = xRect;
+	currentYRect = yRect;
+	currentXRect2 = xRect2;
+	currentYRect2 = yRect2;
+	currentXRect3 = xRect3;
+	currentYRect3 = yRect3;
+	xRectText = xRect + 6;
+	yRectText = yRect + 39;
+	xCircText = xCirc - 13;
+	yCircText = yCirc + 13;
+	xRect2Text = xRect2 + 6;
+	yRect2Text = yRect2 + 39;
+	xRect3Text = xRect3 + 6;
+	yRect3Text = yRect3 + 39;
+	var canvas;
+	var canvas = document.getElementById('bCanvas');
+    var radius = 20;
+	if (canvas.getContext) {
+		canvas.width=1200;//horizontal resolution - increase for better looking text
+		canvas.height=1200;//vertical resolution - increase for better looking text
+	    var ctx = canvas.getContext('2d');
+		ctx.beginPath();
+
+	    ctx.arc(xCirc, yCirc, radius, 0, 2 * Math.PI, false);
+	    ctx.closePath();
+	    ctx.fillStyle = 'green';
+	    ctx.fill();
+	    ctx.lineWidth = 5;
+	    ctx.strokeStyle = '#003300';
+	    ctx.stroke();
+	    ctx.font = '30pt Wingdings';
+      	ctx.fillStyle = 'white';
+	    ctx.fillText("N", xCircText, yCircText);
+	    // 
+	    //begin drawing rectangle 1 here
+	    ctx.fillStyle = 'black';
+	   	ctx.fillRect(xRect, yRect, 50, 50);
+
+	    ctx.font = '32pt Wingdings';
+      	ctx.fillStyle = 'white';
+      	ctx.fillText("[", xRectText, yRectText);
+
+	    //begin drawing rectangle 2 here
+	    ctx.fillStyle = 'red';
+	   	ctx.fillRect(xRect2, yRect2, 50, 50);
+
+	    ctx.font = '32pt Wingdings';
+      	ctx.fillStyle = 'black';
+      	ctx.fillText("[", xRect2Text, yRect2Text); 
+
+      	//begin drawing rectangle 3 here  
+      	ctx.fillStyle = 'orange';
+	   	ctx.fillRect(xRect3, yRect3, 50, 50);
+
+	    ctx.font = '32pt Wingdings';
+      	ctx.fillStyle = 'black';
+      	ctx.fillText("Q", xRect3Text, yRect3Text);   	
+	}
+}
+
+      
+
+      
+
+
+
+drawPlayers(1130, 1150, 1155, 1125, 1084,1150, 1084,1100);
+
+//test railroad chance cards
