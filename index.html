@@ -8,24 +8,96 @@
 	<!-- Latest compiled and minified CSS & JS -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 	<link rel="stylesheet" type="text/css" href="assets/css/style.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.6/handlebars.min.js"></script>
+
+	
 </head>
 
 <body>
 
-	<div id = "debug" style='float: left'></div>
+<!--  template -->
 
-	<div id ='buttons' class = 'info'></div>
-	<br>
-	<div id ='dice' class = 'info'></div>
+<script id="player-list" type="text/x-handlebars-template">
+    {{#each this}}
+    <div class="playerStats">
+        <div class="stats-header">
+            {{name}}
+        </div>
+        <div class="stats-body">
+            <ul>
+                <li>Name: {{name}}</li>
+                <li>ID: {{id}}</li>
+                <li>Cash: {{cash}}</li>
+                <li>Location: {{location}}</li>
+                <li>Props:
+                    <ul class="people_list">
+                        {{#each props}}
+                        <li>{{name}}</li>
+                        {{/each}}
+                    </ul>
+                </li>
+                <li>RRs: {{rrsOwned}}</li>
+                <li>Uts: {{utsOwned}}</li>
+                <li>DoubleRolls: {{doubleRolls}}</li>
+                <li>hasGOJcard: {{hasGOJcard}}</li>
+                <li>jRolls: {{jRolls}}</li>
+                <li>jailed: {{jailed}}</li>
+            </ul>
+        </div>
+    </div>
+    {{/each}}
+</script>
 
-	<div id ='propertyInfo' class = 'info'></div>
+<div id='template-dump'></div>
+<canvas id='bCanvas'></canvas>
+<div id='buttons' class='info'></div>
+<div id='debug-buttons'></div>
+<div id='dice' class='info'></div>
+<div id='propertyInfo' class='info'></div>
+<div id='currentSquare' class='info'></div>
+<div id='build-houses' class='properties'></div>
 
-	<div id = 'currentSquare' class = 'info'></div>
-	<canvas id='bCanvas'></canvas>
 
 	  
 
-	<script src='assets/javascript/benopolyjs.js'></script>
+
+
+	<!-- React -->
+
+ 	<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
+    <script type="text/babel">
+
+	class Stats extends React.Component {
+	  	constructor(props) {
+	    	super(props);
+	    	this.state = {cash: 1100};
+	  	}
+
+	  	componentDidMount() {
+	  		this.setState({cash: g.players[0].cash});
+	  	}
+
+	  	updateReact() {
+	  		this.setState({cash: g.players[0].cash});
+	  	}
+
+		render () {
+			return (
+				<div>
+					<h3>Player 1 Cash: {this.state.cash}</h3>
+				</div>
+			);
+		}
+	}
+
+	ReactDOM.render(
+	  <Stats />,
+	  document.getElementById('root')
+	);
+
+    </script> -->
+
+<script src='assets/javascript/benopolyjs.js'></script>
 </body>
 
 
